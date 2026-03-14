@@ -68,6 +68,7 @@ class CondDQNAgent:
         eps_end=0.05,
         eps_decay_steps=None,
         device=None,
+        obs_scale=10.0,         # normalise obs to [0, 1] (DST grid max = 10)
     ):
         self.n_actions = n_actions
         self.n_obj     = n_obj
@@ -91,9 +92,16 @@ class CondDQNAgent:
         self.eps_decay_steps = eps_decay_steps  # set after knowing total steps
         self._step_count    = 0
         self._grad_steps    = 0
+        self.obs_scale      = obs_scale         # divisor to normalise obs → [0, 1]
+
+    def _normalize_obs(self, obs):
+        # DST grid is 0–10; dividing by obs_scale maps obs to [0, 1],
+        # matching the scale of beta and preventing input-magnitude imbalance.
+        return obs / self.obs_scale
 
     def _obs_to_tensor(self, obs, beta):
-        x = np.concatenate([obs.astype(np.float32), beta])
+        # x = np.concatenate([obs.astype(np.float32), beta])           # old: unnormalised
+        x = np.concatenate([self._normalize_obs(obs.astype(np.float32)), beta])
         return torch.tensor(x, dtype=torch.float32, device=self.device).unsqueeze(0)
 
     def select_action(self, obs, beta):
@@ -120,8 +128,10 @@ class CondDQNAgent:
 
         obs, betas, actions, rewards, next_obs, dones = self.buffer.sample(self.batch_size)
 
-        obs_b   = torch.tensor(np.concatenate([obs,      betas], axis=1), dtype=torch.float32, device=self.device)
-        nobs_b  = torch.tensor(np.concatenate([next_obs, betas], axis=1), dtype=torch.float32, device=self.device)
+        # obs_b  = torch.tensor(np.concatenate([obs,      betas], axis=1), dtype=torch.float32, device=self.device)  # old: unnormalised
+        # nobs_b = torch.tensor(np.concatenate([next_obs, betas], axis=1), dtype=torch.float32, device=self.device)  # old: unnormalised
+        obs_b   = torch.tensor(np.concatenate([self._normalize_obs(obs),      betas], axis=1), dtype=torch.float32, device=self.device)
+        nobs_b  = torch.tensor(np.concatenate([self._normalize_obs(next_obs), betas], axis=1), dtype=torch.float32, device=self.device)
         act_b   = torch.tensor(actions, dtype=torch.long,  device=self.device)
         rew_b   = torch.tensor(rewards, dtype=torch.float32, device=self.device)
         done_b  = torch.tensor(dones,   dtype=torch.float32, device=self.device)
