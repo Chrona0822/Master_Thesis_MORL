@@ -8,11 +8,14 @@ Usage:
     python plot_results.py --exp 3        # generalisation gap for Exp 3
     python plot_results.py                # all of the above
 
-Figures are saved to results/figures/.
+Figures are saved to results/figures/HHMMSS_YYMMDD/.
+A run_log.txt is also written there with the command and timestamp.
 """
 
 import os
+import sys
 import argparse
+from datetime import datetime
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -41,7 +44,7 @@ plt.rcParams.update({
 })
 
 RESULTS_DIR = os.path.join(os.path.dirname(__file__), "results")
-FIG_DIR     = os.path.join(RESULTS_DIR, "figures")
+FIG_DIR     = os.path.join(RESULTS_DIR, "figures")   # overridden in main() with timestamp sub-folder
 
 # ── Shared method style registry (avoids duplication across functions) ────────
 METHODS = {
@@ -431,6 +434,24 @@ def plot_exp3():
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 def main():
+    # Capture run time immediately — before any work starts
+    run_time = datetime.now()
+    timestamp = run_time.strftime("%H%M%S_%y%m%d")   # e.g. 143022_260314
+
+    # Point FIG_DIR at the timestamped sub-folder for this run
+    global FIG_DIR
+    FIG_DIR = os.path.join(RESULTS_DIR, "figures", timestamp)
+    os.makedirs(FIG_DIR, exist_ok=True)
+
+    # Write the run log immediately so it records the trigger time
+    log_path = os.path.join(FIG_DIR, "run_log.txt")
+    full_command = " ".join([sys.executable] + sys.argv)
+    with open(log_path, "w") as f:
+        f.write(f"timestamp : {run_time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"command   : {full_command}\n")
+    print(f"Run log   → {log_path}")
+    print(f"Figures   → {FIG_DIR}")
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--exp", nargs="+", type=int, default=[0, 1, 2, 3])
     args = parser.parse_args()
