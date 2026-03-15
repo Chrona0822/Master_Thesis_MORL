@@ -51,7 +51,7 @@ def train_dqn(agent, env, n_episodes, n_obj, seed=None):
     return episode_returns
 
 
-def train_tabular(agent, env, n_episodes, n_obj, seed=None):
+def train_tabular(agent, env, n_episodes, n_obj, seed=None, beta_list=None):
     """
     Train a tabular agent (Tabular+GIP or Pareto Q).
 
@@ -59,10 +59,17 @@ def train_tabular(agent, env, n_episodes, n_obj, seed=None):
     transition (they don't need beta sampled per episode — the update
     loop handles all grid points simultaneously). We still pick a beta
     for the behavioural policy (exploration) using a uniform grid sweep.
+
+    beta_list : optional list of betas to cycle through for the behavioural
+                policy. Defaults to the full uniform grid (exp1, exp2).
+                Pass SEEN_BETAS in exp3 to avoid leaking unseen betas during
+                training, keeping the comparison with DQN fair.
     """
     rng = np.random.default_rng(seed)
     total_steps_estimate = n_episodes * 50
-    beta_list = _uniform_betas(n_obj)
+    # beta_list = _uniform_betas(n_obj)                     # old: always full grid
+    if beta_list is None:
+        beta_list = _uniform_betas(n_obj)                   # default for exp1/exp2
 
     episode_returns = []
 

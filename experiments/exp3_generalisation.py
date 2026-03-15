@@ -165,7 +165,9 @@ def run(seeds=SEEDS):
         lambda: TabularGIPAgent(n_states=N_STATES, n_actions=4, n_obj=2,
                                 n_grid_points=11, gamma=0.99, lr=0.1,
                                 eps_start=1.0, eps_end=0.05),
-        train_tabular,
+        # pass SEEN_BETAS so tabular trains on the same sparse set as DQN
+        lambda agent, env, n_episodes, n_obj, seed=None: train_tabular(
+            agent, env, n_episodes, n_obj, seed=seed, beta_list=SEEN_BETAS),
         seeds,
     )
 
@@ -174,7 +176,9 @@ def run(seeds=SEEDS):
         lambda: ParetoQAgent(n_states=N_STATES, n_actions=4, n_obj=2,
                              gamma=0.99, lr=0.1,
                              eps_start=1.0, eps_end=0.05),
-        train_tabular,
+        # pass SEEN_BETAS so pareto trains on the same sparse set as DQN
+        lambda agent, env, n_episodes, n_obj, seed=None: train_tabular(
+            agent, env, n_episodes, n_obj, seed=seed, beta_list=SEEN_BETAS),
         seeds,
     )
 
