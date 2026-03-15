@@ -96,36 +96,40 @@ def _run_method(name, make_agent_fn, train_fn, seeds):
     return all_hvs, np.array(all_scalars)
 
 
-def run(seeds=SEEDS):
+def run(seeds=SEEDS, methods=None):
     os.makedirs(RESULT_DIR, exist_ok=True)
+    active = set(methods) if methods else {"dqn", "tabular", "pareto"}
 
     results = {}
 
-    results["dqn"] = _run_method(
-        "dqn",
-        lambda: CondDQNAgent(state_dim=2, n_actions=4, n_obj=3,
-                             gamma=0.99, lr=1e-3,
-                             buffer_capacity=100_000, batch_size=64,
-                             target_sync_every=200,
-                             eps_start=1.0, eps_end=0.05),
-        train_dqn, seeds,
-    )
+    if "dqn" in active:
+        results["dqn"] = _run_method(
+            "dqn",
+            lambda: CondDQNAgent(state_dim=2, n_actions=4, n_obj=3,
+                                 gamma=0.99, lr=1e-3,
+                                 buffer_capacity=100_000, batch_size=64,
+                                 target_sync_every=200,
+                                 eps_start=1.0, eps_end=0.05),
+            train_dqn, seeds,
+        )
 
-    results["tabular"] = _run_method(
-        "tabular",
-        lambda: TabularGIPAgent(n_states=N_STATES, n_actions=4, n_obj=3,
-                                n_grid_points=11, gamma=0.99, lr=0.1,
-                                eps_start=1.0, eps_end=0.05),
-        train_tabular, seeds,
-    )
+    if "tabular" in active:
+        results["tabular"] = _run_method(
+            "tabular",
+            lambda: TabularGIPAgent(n_states=N_STATES, n_actions=4, n_obj=3,
+                                    n_grid_points=11, gamma=0.99, lr=0.1,
+                                    eps_start=1.0, eps_end=0.05),
+            train_tabular, seeds,
+        )
 
-    results["pareto"] = _run_method(
-        "pareto",
-        lambda: ParetoQAgent(n_states=N_STATES, n_actions=4, n_obj=3,
-                             gamma=0.99, lr=0.1,
-                             eps_start=1.0, eps_end=0.05),
-        train_tabular, seeds,
-    )
+    if "pareto" in active:
+        results["pareto"] = _run_method(
+            "pareto",
+            lambda: ParetoQAgent(n_states=N_STATES, n_actions=4, n_obj=3,
+                                 gamma=0.99, lr=0.1,
+                                 eps_start=1.0, eps_end=0.05),
+            train_tabular, seeds,
+        )
 
     _wilcoxon_table(results)
     print(f"[Exp 2] done — results in {RESULT_DIR}")
