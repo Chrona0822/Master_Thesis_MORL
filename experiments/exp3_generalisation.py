@@ -23,9 +23,10 @@ import numpy as np
 import mo_gymnasium as mo_gym
 from scipy import stats
 
-from agents.dqn_agent     import CondDQNAgent, sample_beta
-from agents.tabular_agent import TabularGIPAgent
-from agents.pareto_agent  import ParetoQAgent
+from agents.dqn_agent      import CondDQNAgent, sample_beta
+from agents.tabular_agent  import TabularGIPAgent
+from agents.pareto_agent   import ParetoQAgent
+from agents.envelope_agent import EnvelopeQAgent
 from experiments.train_utils import train_tabular
 from evaluation.metrics import evaluate_agent, hypervolume, generalisation_gap
 
@@ -146,7 +147,7 @@ def _run_method(name, make_agent_fn, train_fn, seeds):
 
 def run(seeds=SEEDS, methods=None):
     os.makedirs(RESULT_DIR, exist_ok=True)
-    active = set(methods) if methods else {"dqn", "tabular", "pareto"}
+    active = set(methods) if methods else {"dqn", "tabular", "pareto", "envelope"}
 
     results = {}
 
@@ -181,6 +182,18 @@ def run(seeds=SEEDS, methods=None):
                                  gamma=0.99, lr=0.1,
                                  eps_start=1.0, eps_end=0.05),
             # pass SEEN_BETAS so pareto trains on the same sparse set as DQN
+            lambda agent, env, n_episodes, n_obj, seed=None: train_tabular(
+                agent, env, n_episodes, n_obj, seed=seed, beta_list=SEEN_BETAS),
+            seeds,
+        )
+
+    if "envelope" in active:
+        results["envelope"] = _run_method(
+            "envelope",
+            lambda: EnvelopeQAgent(n_states=N_STATES, n_actions=4, n_obj=2,
+                                   n_grid_points=11, gamma=0.99, lr=0.1,
+                                   eps_start=1.0, eps_end=0.05),
+            # pass SEEN_BETAS so envelope trains on the same sparse set as DQN
             lambda agent, env, n_episodes, n_obj, seed=None: train_tabular(
                 agent, env, n_episodes, n_obj, seed=seed, beta_list=SEEN_BETAS),
             seeds,
