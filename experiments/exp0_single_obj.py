@@ -25,7 +25,7 @@ FIXED_BETA  = np.array([0.5, 0.5], dtype=np.float32)
 RESULT_DIR  = os.path.join(os.path.dirname(__file__), "..", "results", "exp0")
 
 
-def run(seeds=SEEDS):
+def run(seeds=SEEDS, methods=None):  # methods ignored; exp0 is DQN-only
     os.makedirs(RESULT_DIR, exist_ok=True)
     all_returns = []
 
