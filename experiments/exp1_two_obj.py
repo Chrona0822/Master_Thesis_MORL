@@ -22,9 +22,10 @@ import numpy as np
 import mo_gymnasium as mo_gym
 from scipy import stats
 
-from agents.dqn_agent    import CondDQNAgent
-from agents.tabular_agent import TabularGIPAgent
-from agents.pareto_agent  import ParetoQAgent
+from agents.dqn_agent      import CondDQNAgent
+from agents.tabular_agent  import TabularGIPAgent
+from agents.pareto_agent   import ParetoQAgent
+from agents.envelope_agent import EnvelopeQAgent
 from experiments.train_utils import train_dqn, train_tabular
 from evaluation.metrics import (
     evaluate_agent, hypervolume, eval_beta_grid_2obj
@@ -109,7 +110,7 @@ def _run_method(name, make_agent_fn, train_fn, seeds):
 
 def run(seeds=SEEDS, methods=None):
     os.makedirs(RESULT_DIR, exist_ok=True)
-    active = set(methods) if methods else {"dqn", "tabular", "pareto"}
+    active = set(methods) if methods else {"dqn", "tabular", "pareto", "envelope"}
 
     results = {}
 
@@ -141,6 +142,16 @@ def run(seeds=SEEDS, methods=None):
             lambda: ParetoQAgent(n_states=N_STATES, n_actions=4, n_obj=2,
                                  gamma=0.99, lr=0.1,
                                  eps_start=1.0, eps_end=0.05),
+            train_tabular,
+            seeds,
+        )
+
+    if "envelope" in active:
+        results["envelope"] = _run_method(
+            "envelope",
+            lambda: EnvelopeQAgent(n_states=N_STATES, n_actions=4, n_obj=2,
+                                   n_grid_points=11, gamma=0.99, lr=0.1,
+                                   eps_start=1.0, eps_end=0.05),
             train_tabular,
             seeds,
         )

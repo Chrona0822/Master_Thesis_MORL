@@ -16,12 +16,12 @@ import sys
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--exp",    nargs="+", type=int, default=[0, 1, 2, 3],
-                        help="Which experiments to run (0 1 2 3)")
+    parser.add_argument("--exp",    nargs="+", type=int, default=[0, 1, 2, 3, 4],
+                        help="Which experiments to run (0 1 2 3 4)")
     parser.add_argument("--seeds",  nargs="+", type=int, default=None,
                         help="Override seeds (default: 42 123 256 512 1024)")
     parser.add_argument("--method", nargs="+", type=str, default=None,
-                        choices=["dqn", "tabular", "pareto"],
+                        choices=["dqn", "tabular", "pareto", "envelope"],
                         help="Run only specific methods, e.g. --method pareto")
     return parser.parse_args()
 
@@ -36,6 +36,7 @@ def main():
         1: ("experiments.exp1_two_obj",       "Exp 1 — Two-objective benchmark"),
         2: ("experiments.exp2_three_obj",     "Exp 2 — Three-objective scalability"),
         3: ("experiments.exp3_generalisation","Exp 3 — Generalisation"),
+        4: ("experiments.exp4_sensitivity",   "Exp 4 — Sensitivity analysis"),
     }
 
     for idx in sorted(args.exp):
