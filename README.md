@@ -6,6 +6,11 @@ Empirical comparison of preference-conditioned agents on the **Deep Sea Treasure
 
 ## Methods
 
+| Method            | Type              | Description                                                                                                             |
+| ----------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **Cond-DQN**      | Neural (proposed) | Preference-conditioned DQN; β concatenated to state input; trained with experience replay                               |
+| **Tabular + GIP** | Tabular baseline  | Maintains one Q-table per simplex grid point; updates all tables simultaneously (Generalised Policy Improvement)        |
+| **Envelope Q**    | Tabular baseline  | Envelope Bellman backup (Yang et al., 2019); bootstraps across Q-tables so information flows between preference vectors |
 | Method | Type | Description |
 |--------|------|-------------|
 | **Cond-DQN** | Neural (proposed) | Preference-conditioned DQN; β concatenated to state input; trained with experience replay |
@@ -16,6 +21,13 @@ Empirical comparison of preference-conditioned agents on the **Deep Sea Treasure
 
 ## Experiments
 
+| ID    | Description                                     | Key metric                            |
+| ----- | ----------------------------------------------- | ------------------------------------- |
+| Exp 0 | DQN convergence check (fixed β = [0.5, 0.5])    | Training curve                        |
+| Exp 1 | Two-objective benchmark (21 evaluation betas)   | Hypervolume, scalarised return vs β   |
+| Exp 2 | Three-objective scalability (fuel-cost wrapper) | Hypervolume, Pareto projections       |
+| Exp 3 | Generalisation across preference simplex        | Generalisation gap (seen vs unseen β) |
+| Exp 4 | Sensitivity analysis (lr / grid size sweep)     | Hypervolume per hyperparameter config |
 | ID | Description | Key metric |
 |----|-------------|-----------|
 | Exp 0 | DQN convergence check (fixed β = [0.5, 0.5]) | Training curve |
@@ -112,4 +124,3 @@ Figures are saved to `results/figures/<timestamp>/`.
 - Actions: up / down / left / right
 
 ---
-
